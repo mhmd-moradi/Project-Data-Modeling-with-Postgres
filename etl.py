@@ -12,18 +12,16 @@ def process_song_file(cur, filepath):
     Parameters:
         cur: cursor to the database
         filepath: path to a song file
-        
-    Returns: None
     '''
     # open song file
     df = pd.read_json(filepath, lines=True)
 
     # insert song record
-    song_data = [df.values[0][7], df.values[0][8], df.values[0][0], df.values[0][9], df.values[0][5]]
+    song_data = [str(df.values[0][7]), str(df.values[0][8]), df.values[0][0], df.values[0][9], float(df.values[0][5] or 0)]
     cur.execute(song_table_insert, song_data)
     
     # insert artist record
-    artist_data = [df.values[0][0], df.values[0][4], df.values[0][2], df.values[0][1], df.values[0][3]]
+    artist_data = [str(df.values[0][0]), str(df.values[0][4]), df.values[0][2], df.values[0][1], df.values[0][3]]
     cur.execute(artist_table_insert, artist_data)
 
 
@@ -34,8 +32,6 @@ def process_log_file(cur, filepath):
     Parameters:
         cur: cursor to the database
         filepath: path to a log file
-        
-    Returns: None
     '''
     # open log file
     df = pd.read_json(filepath, lines=True)
@@ -44,6 +40,7 @@ def process_log_file(cur, filepath):
     df = df[df["page"] == "NextSong"]
 
     # convert timestamp column to datetime
+    df["ts"].replace("NaN", "0", inplace=True)
     df["ts"] = pd.to_datetime(df["ts"], unit='ms')
     t = df["ts"]
     
@@ -83,7 +80,7 @@ def process_log_file(cur, filepath):
             songid, artistid = None, None
 
         # insert songplay record
-        songplay_data = (row.ts, row.userId, row.level, songid, artistid, row.sessionId, row.location, row.userAgent)
+        songplay_data = (row.ts, int(row.userId or -1), row.level, songid, artistid, row.sessionId, row.location, row.userAgent)
         cur.execute(songplay_table_insert, songplay_data)
 
 
@@ -96,8 +93,6 @@ def process_data(cur, conn, filepath, func):
         conn: connection to the database
         filepath: path to folder
         func: process function
-        
-    Returns: None
     '''
     # get all files matching extension from directory
     all_files = []
