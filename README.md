@@ -61,7 +61,7 @@ Fact table: songplays
 
 Dimension tables: songs, users, artists, time
 
-![](images/star-schema.png)
+![](images/star_schema.png)
 
 ------
 
